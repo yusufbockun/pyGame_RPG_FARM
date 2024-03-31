@@ -1,16 +1,19 @@
 import pygame
+from settings import *
 from support import *
 from timer import *
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos, group):
         super().__init__(group)
+        
         # General Setup
         self.import_assets()
         self.status='down_idle'
         self.frame_index=0
-        
         self.image = self.animations[self.status][self.frame_index]
         self.rect = self.image.get_rect(center=pos)
+        self.hitbox = self.rect.copy().inflate(-126,-70)
+        self.z = LAYERS['main']
 
         # Movement attributes
         self.direction = pygame.math.Vector2()
@@ -107,11 +110,13 @@ class Player(pygame.sprite.Sprite):
             
         #horizontal movement
         self.pos.x+= self.direction.x * self.speed * dt
-        self.rect.centerx = self.pos.x
+        self.hitbox.centerx=round(self.pos.x)
+        self.rect.centerx = self.hitbox.centerx
 
         #vertical movement
         self.pos.y+= self.direction.y * self.speed * dt
-        self.rect.centery = self.pos.y
+        self.hitbox.centery=round(self.pos.y)
+        self.rect.centery = self.hitbox.centery
         
     def get_status(self):
         #animation idle
