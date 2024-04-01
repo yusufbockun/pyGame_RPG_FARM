@@ -1,6 +1,7 @@
 import pygame
 from settings import *
-
+from random import randint,choice
+from timer import Timer
 class Generic(pygame.sprite.Sprite):
 	def __init__(self,pos,surf,groups,z=LAYERS['main']):
 		super().__init__(groups)
@@ -20,7 +21,7 @@ class Water(Generic):
 		super().__init__(pos=pos,
 		                 surf=self.frames[self.frame_index],
 		               groups=groups,
-		               z = LAYERS['main']  
+		               z = LAYERS['water']  
 		                 
 		                 )
 		
@@ -36,7 +37,55 @@ class Water(Generic):
 class WildFlower(Generic):
 	def __init__(self,pos,surf,groups):
 		super().__init__(pos,surf,groups)
+		self.hitbox =self.rect.copy().inflate(-20,-self.rect.height*0.9)
 
 class Tree(Generic):
 	def __init__(self,pos,surf,groups,name):
 		super().__init__(pos,surf,groups)
+		
+		#tree attributes
+		self.health = 5
+		self.alive = True
+		stump_path = f'graphics/stumps/{"small"  if name =="Small" else "large"}.png'
+		self.stum_surf = pygame.image.load(stump_path).convert_alpha()
+		self.invul_timer = Timer(200)
+		#apples
+		self.apples_surf = pygame.image.load(f'graphics/fruit/apple.png')
+		self.apple_pos = APPLE_POS[name]
+		self.apple_sprites = pygame.sprite.Group()
+		self.create_fruit()
+		
+		
+	def damage(self):
+		#damage tree
+		self.health -=1
+		
+		#remove an apple
+		if len(self.apple_sprites.sprites())>0:
+			random_apple = choice(self.apple_sprites.sprites())
+			random_apple.kill()
+		
+	
+	def check_dead(self):
+		if self.health <= 0:
+			self.image =self.stum_surf
+			self.rect = self.image.get_rect(midbottom=self.rect.midbottom)
+			self.hitbox = self.rect.copy().inflate(-10,-self.rect.height*0.6)
+			self.alive = False
+			print('dead')
+			
+	def update(self,dt):
+		if self.alive:
+			self.check_dead()
+	def create_fruit(self):
+		for pos in self.apple_pos:
+			if randint(0,10)<2:
+				x = pos[0] + self.rect.left
+				y = pos[1] + self.rect.top
+				Generic(pos=(x,y),
+				        surf = self.apples_surf,
+				        groups = [self.apple_sprites,self.groups()[0]],
+				        z=LAYERS['fruit']
+				        )
+				
+		
