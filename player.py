@@ -44,7 +44,7 @@ class Player(pygame.sprite.Sprite):
             'wood': 0,
             'apple':0,
             'corn':0,
-            'tomato':10
+            'tomato':0
         }
         
         # interaction
@@ -64,10 +64,11 @@ class Player(pygame.sprite.Sprite):
                     tree.damage()
                 
         if self.selectedTool =='water':
-            pass
+            self.soil_layer.water(self.target_pos)
     
     def use_seed(self):
-        return        
+        self.soil_layer.plant_seed(self.target_pos,self.selectedSeed)
+        
     def import_assets(self):
         self.animations={'up':[],'down':[],'left':[],'right':[],
                          'right_idle':[],'left_idle':[],'up_idle':[],'down_idle':[],
