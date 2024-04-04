@@ -2,8 +2,9 @@ import pygame
 from settings import *
 from support import *
 from timer import *
+from transition import Transition
 class Player(pygame.sprite.Sprite):
-    def __init__(self, pos, group,collision_sprites, tree_sprites):
+    def __init__(self, pos, group,collision_sprites, tree_sprites,interaction,soil_layer):
         super().__init__(group)
         
         # General Setup
@@ -36,16 +37,27 @@ class Player(pygame.sprite.Sprite):
         self.seeds=['corn','tomato']
         self.selectedSeed='corn'
         
+        
+        #player_inventory
+        
+        self.item_inventory= {
+            'wood': 0,
+            'apple':0,
+            'corn':0,
+            'tomato':10
+        }
+        
         # interaction
         self.tree_sprites = tree_sprites
-        
-    
+        self.interaction =interaction
+        self.sleep =False
+        self.soil_layer =soil_layer
     def get_target_pos(self):
         self.target_pos = self.rect.center + PLAYER_TOOL_OFFSET[self.status.split('_')[0]]
         
     def use_tool(self):
         if self.selectedTool =='hoe':
-            pass
+            self.soil_layer.get_hit(self.target_pos)
         if self.selectedTool =='axe':
             for tree in self.tree_sprites.sprites():
                 if tree.rect.collidepoint(self.target_pos):
@@ -55,9 +67,7 @@ class Player(pygame.sprite.Sprite):
             pass
     
     def use_seed(self):
-        return
-        print(self.selectedSeed)
-        
+        return        
     def import_assets(self):
         self.animations={'up':[],'down':[],'left':[],'right':[],
                          'right_idle':[],'left_idle':[],'up_idle':[],'down_idle':[],
@@ -75,7 +85,7 @@ class Player(pygame.sprite.Sprite):
         self.image=self.animations[self.status][int(self.frame_index)]
     def input(self):
         keys = pygame.key.get_pressed()
-        if not self.timers['tool_timer'].active:
+        if not self.timers['tool_timer'].active and not self.sleep:
             # Movement
             if keys[pygame.K_w]:
                 self.direction.y = -1
@@ -115,6 +125,14 @@ class Player(pygame.sprite.Sprite):
             if keys[pygame.K_e] and not self.timers['switch_seed'].active:
                 self.timers['switch_seed'].activate()
                 self.change_seed()
+            if keys[pygame.K_z]:
+                collided_interaction_sprite=pygame.sprite.spritecollide(self,self.interaction,False)
+                if collided_interaction_sprite:
+                    if collided_interaction_sprite[0].name =='Trader':
+                        pass
+                    else:
+                        self.status ='left_idle'
+                        self.sleep = True
 
 
     def collision(self,direction):

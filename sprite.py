@@ -9,9 +9,12 @@ class Generic(pygame.sprite.Sprite):
 		self.rect=self.image.get_rect(topleft=pos)
 		self.z=z
 		self.hitbox = self.rect.copy().inflate(-self.rect.width*0.2,-self.rect.height*0.75)
-		
-		
-		
+
+class Interaction(Generic):
+	def __init__(self,pos,size,groups, name):
+		surf=pygame.Surface(size)
+		super().__init__(pos,surf,groups)
+		self.name = name
 class Water(Generic):
 	def __init__(self,pos,frames,groups):
 		self.frames=frames
@@ -40,7 +43,7 @@ class WildFlower(Generic):
 		self.hitbox =self.rect.copy().inflate(-20,-self.rect.height*0.9)
 
 class Tree(Generic):
-	def __init__(self,pos,surf,groups,name):
+	def __init__(self,pos,surf,groups,name,player_add):
 		super().__init__(pos,surf,groups)
 		
 		#tree attributes
@@ -50,12 +53,12 @@ class Tree(Generic):
 		self.stum_surf = pygame.image.load(stump_path).convert_alpha()
 		self.invul_timer = Timer(200)
 		#apples
-		self.apples_surf = pygame.image.load(f'graphics/fruit/apple.png')
-		self.apple_pos = APPLE_POS[name]
+		self.apples_surf = pygame.image.load(f'graphics/fruit/apple.png').convert_alpha()
 		self.apple_sprites = pygame.sprite.Group()
+		self.apple_pos = APPLE_POS[name]
 		self.create_fruit()
-		
-		
+
+		self.player_add = player_add
 	def damage(self):
 		#damage tree
 		self.health -=1
@@ -64,28 +67,29 @@ class Tree(Generic):
 		if len(self.apple_sprites.sprites())>0:
 			random_apple = choice(self.apple_sprites.sprites())
 			random_apple.kill()
-		
-	
+			self.player_add('apple')
+
 	def check_dead(self):
 		if self.health <= 0:
 			self.image =self.stum_surf
 			self.rect = self.image.get_rect(midbottom=self.rect.midbottom)
 			self.hitbox = self.rect.copy().inflate(-10,-self.rect.height*0.6)
 			self.alive = False
-			print('dead')
+			self.player_add('wood',5)
 			
 	def update(self,dt):
 		if self.alive:
 			self.check_dead()
 	def create_fruit(self):
 		for pos in self.apple_pos:
-			if randint(0,10)<2:
+			if randint(0, 10) < 2:
 				x = pos[0] + self.rect.left
 				y = pos[1] + self.rect.top
-				Generic(pos=(x,y),
-				        surf = self.apples_surf,
-				        groups = [self.apple_sprites,self.groups()[0]],
-				        z=LAYERS['fruit']
-				        )
+				# Adding apple sprites to the same groups as the Tree sprite
+				apple_sprite = Generic(pos=(x, y),
+				                       surf=self.apples_surf,
+				                       groups=[self.groups(), self.apple_sprites],
+				                       z=LAYERS['fruit']
+				                       )
 				
 		
