@@ -13,7 +13,7 @@ PLAYER_TOOL_OFFSET = {
 	'left': Vector2(-50,40),
 	'right': Vector2(50,40),
 	'up': Vector2(0,-10),
-	'down': Vector2(0,50)
+	'down': Vector2(0,30)
 }
 
 LAYERS = {
